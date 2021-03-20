@@ -5,8 +5,14 @@ const REDIRECT_URI = "http://localhost:3000/redirect";
 
 const fetch = require("node-fetch");
 
-const admin = require('firebase-admin');
-admin.initializeApp();
+
+var admin = require("firebase-admin");
+
+var serviceAccount = require("./serviceAccountKey.json");
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+});
 
 const db = admin.firestore();
 
@@ -30,8 +36,135 @@ router.get('/calendars', (req, res) => {
         .catch(error => console.log(error));
 });
 
+// User
+router.get('/users', (req, res) => {
+    async function getUsers() {
+        const citiesRef = db.collection('user');
+        const snapshot = await citiesRef.get();
+        if (snapshot.empty) {
+            console.log('No matching documents.');
+            return;
+        }
+        let result = [];
+
+        snapshot.forEach(doc => {
+            let temp = doc.data();
+            temp.id = doc.id;
+            result.push(temp);
+        });
+        return result;
+    }
+    getUsers().then(result => res.json(result));
+});
+
+router.get('/users/:id', (req, res) => {
+    let id = req.params.id;
+    async function getUserById(id) {
+        const citiesRef = db.collection('user').doc(id);
+        const doc = await citiesRef.get();
+        if (!doc.exists) {
+            console.log('No such document!');
+        } else {
+            return doc.data();
+        }
+    }
+    getUserById(id).then(result => res.json(result));
+});
+
+// Event
+router.get('/events', (req, res) => {
+    async function getEvents() {
+        const citiesRef = db.collection('event');
+        const snapshot = await citiesRef.get();
+        if (snapshot.empty) {
+            console.log('No matching documents.');
+            return;
+        }
+        let result = [];
+
+        snapshot.forEach(doc => {
+            let temp = doc.data();
+            temp.id = doc.id;
+            result.push(temp);
+        });
+        return result;
+    }
+    getEvents().then(result => res.json(result));
+});
+
+router.get('/events/:id', (req, res) => {
+    let id = req.params.id;
+    async function getEventById(id) {
+        const citiesRef = db.collection('event').doc(id);
+        const doc = await citiesRef.get();
+        if (!doc.exists) {
+            console.log('No such document!');
+        } else {
+            return doc.data();
+        }
+    }
+    getEventById(id).then(result => res.json(result));
+});
+
+// Room
 router.get('/rooms', (req, res) => {
-    res.json({ name: 'rooms', rooms: [1, 2, 3] });
+    async function getRooms() {
+        const citiesRef = db.collection('meetingrooms');
+        const snapshot = await citiesRef.get();
+        if (snapshot.empty) {
+            console.log('No matching documents.');
+            return;
+        }
+        let result = [];
+
+        snapshot.forEach(doc => {
+            let temp = doc.data();
+            temp.id = doc.id;
+            result.push(temp);
+        });
+        return result;
+    }
+    getRooms().then(result => res.json(result));
+});
+
+router.get('/rooms/:id', (req, res) => {
+    let id = req.params.id;
+    async function getRoomById(id) {
+        const citiesRef = db.collection('meetingrooms').doc(id);
+        const doc = await citiesRef.get();
+        if (!doc.exists) {
+            console.log('No such document!');
+        } else {
+            return doc.data();
+        }
+    }
+    getRoomById(id).then(result => res.json(result));
+});
+
+// Create Event
+router.post('/create/event', (req, res) => {
+    async function create(data) {
+        let starttime = new Date(data.year, data.month - 1, data.day, data.starthour, data.startminutes).getTime();
+        let endtime = new Date(data.year, data.month - 1, data.day, data.endhour, data.endminutes).getTime();
+
+        const res = await db.collection('event').add({
+            color: data.color,
+            eventId: '',
+            messages: [],
+            name: data.name,
+            owner: {},
+            room: {
+                floor: data.floor,
+                type: data.type
+            },
+            timed: true,
+            users: [],
+            start: starttime,
+            end: endtime
+        });
+    }
+    create(req.body);
+    res.json({ status: 'OK', code: 200 })
 });
 
 router.get('/user/calendars', (req, res) => {

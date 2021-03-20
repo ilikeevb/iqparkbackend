@@ -4,6 +4,12 @@ const PORT = process.env.PORT || 3000;
 var cors = require('cors');
 const app = express();
 
+const bodyParser = require('body-parser');
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(bodyParser.raw());
+
 app.use(cors())
 app.use('/', routerAuth );
 
