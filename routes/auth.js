@@ -167,6 +167,30 @@ router.post('/create/event', (req, res) => {
     res.json({ status: 'OK', code: 200 })
 });
 
+router.post('/outlook/create', (req, res) => {
+    async function postdata(req) {
+        const token = req.body.token;
+        const bearer = `Bearer ${token}`;
+
+        let url = "https://graph.microsoft.com/v1.0/me/calendars/" + req.body.calendarId + "/events"
+
+        const options = {
+            method: "POST",
+            headers: {
+                "Authorization": bearer,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(req.body.event)
+        };
+        let response = await fetch(url, options);
+        let result = await response;
+        return result;
+    }
+    let temp = postdata(req);
+    temp.then(x => console.log('?: ', x));
+    res.json({ status: 'OK', code: 200 })
+});
+
 router.get('/user/calendars', (req, res) => {
     const token = req.query.token;
     const bearer = `Bearer ${token}`;
